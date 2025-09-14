@@ -2765,194 +2765,83 @@
 }</script>
  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    (function(){
-      const $ = (sel) => document.querySelector(sel);
+    function statusColor(s){
+      s = (s||"").toLowerCase();
+      if(s==="open") return "#16a34a";
+      if(s==="closed") return "#dc2626";
+      if(s.includes("restor")) return "#2563eb";
+      return "#64748b";
+    }
+    function statusDot(s){
+      return '<span style="display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:6px;background:'+statusColor(s)+';border:1px solid rgba(0,0,0,.2);"></span>';
+    }
+    function popupHTML(p){
+      let rows="";
+      const add=(k,v)=>{ if(v) rows+=`<tr><th>${k}</th><td>${v}</td></tr>`; };
+      add("Address",p.Address);
+      add("Films",p.Movie);
+      add("Seats",p.Seats);
+      add("Screens",p.Screens);
+      if(p.URL) add("Link",`<a href="${p.URL}" target="_blank">Cinema Treasures</a>`);
+      if(p.Description) add("Notes",p.Description);
+      return `<div class="title" style="font-size:16px;margin-bottom:6px;">${statusDot(p.Status)}${p.Theatre||""}</div>
+              <table class="details-table">${rows}</table>`;
+    }
+    function itemHTML(p){
+      return `<div class="title">${statusDot(p.Status)}${p.Theatre||""}</div>
+              ${p.Movie?`<div class="small">${p.Movie}</div>`:""}
+              ${p.Address?`<div class="small">${p.Address}</div>`:""}
+              ${p.Seats?`<span class="badge">${p.Seats} seats</span>`:""}
+              ${p.Screens?`<span class="badge">${p.Screens} screen${p.Screens==1?"":"s"}</span>`:""}`;
+    }
 
-      // Safe JSON parse of inline data
-      function parseInlineJSON() {
-        const n = $('#data');
-        if (!n) return {type:'FeatureCollection', features:[]};
-        try { return JSON.parse(n.textContent || '{}'); }
-        catch (e) { console.error('Bad inline JSON:', e); return {type:'FeatureCollection', features:[]}; }
-      }
+    window.addEventListener("DOMContentLoaded",()=>{
+      const raw=document.getElementById("data");
+      let fc={type:"FeatureCollection",features:[]};
+      try{fc=JSON.parse(raw.textContent);}catch(e){console.error("Bad JSON",e);}
+      const feats=fc.features||[];
 
-      // Build a simple SVG dot marker
-      function markerIcon(hexColor, size=18) {
-        const r = size/2;
-        const svg =
-          `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-             <circle cx="${r}" cy="${r}" r="${r-1}" fill="${hexColor}" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
-           </svg>`;
-        return L.divIcon({
-          html: svg,
-          className: 'custom-dot',
-          iconSize: [size, size],
-          iconAnchor: [r, r]
+      const map=L.map("map");
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
+      const latlngs=[]; const markers=[];
+      feats.forEach((f,i)=>{
+        if(!f.geometry) return;
+        const [lon,lat]=f.geometry.coordinates;
+        const p=f.properties||{};
+        latlngs.push([lat,lon]);
+        const m=L.marker([lat,lon],{icon:L.divIcon({
+          html:`<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="8" fill="${statusColor(p.Status)}" stroke="rgba(0,0,0,.3)" stroke-width="1"/></svg>`,
+          className:"",iconSize:[18,18],iconAnchor:[9,9]
+        })}).addTo(map).bindPopup(popupHTML(p));
+        markers.push({p,latlng:[lat,lon],m});
+      });
+      if(latlngs.length) map.fitBounds(latlngs);
+
+      const list=document.getElementById("list"),status=document.getElementById("status");
+      function render(rows){
+        list.innerHTML="";
+        rows.forEach(r=>{
+          const d=document.createElement("div");
+          d.className="item"; d.innerHTML=itemHTML(r.p);
+          d.onclick=()=>{ map.flyTo(r.latlng,15); r.m.openPopup(); };
+          list.appendChild(d);
         });
+        status.textContent=`${rows.length} theatres`;
       }
+      render(markers);
 
-      // Popup HTML
-      function popupHTML(p) {
-        const rows = [];
-        const push = (label, val, cls) => {
-          if (val == null || String(val).trim()==='') return;
-          rows.push(
-            `<tr class="${cls || ''}">
-              <th>${label}</th>
-              <td>${String(val)}</td>
-            </tr>`
-          );
-        };
-
-        const titleLine = `
-          <div class="title" style="font-size:16px;margin-bottom:6px;">
-            ${statusDot(p.Status)}${p.Theatre || 'Untitled'}
-          </div>`;
-
-        // Compact status next to title handled by statusDot above
-        push('Address', p.Address, 'row-address');
-        push('Films', p.Movie, 'row-movie');
-        push('Seats', p.Seats, 'row-seats');
-        push('Screens', p.Screens, 'row-screens');
-        if (p.URL) {
-          push('Link', `<a href="${p.URL}" target="_blank" rel="noopener">Cinema Treasures</a>`, 'row-url');
-        }
-        if (p.Description) {
-          push('Notes', p.Description, 'row-notes');
-        }
-
-        return `
-          ${titleLine}
-          <table class="details-table">${rows.join('')}</table>
-        `;
-      }
-
-      // Sidebar item HTML
-      function itemHTML(p) {
-        const films = p.Movie ? `<div class="small">${p.Movie}</div>` : '';
-        const addr  = p.Address ? `<div class="small">${p.Address}</div>` : '';
-        const chips = [];
-        if (p.Status) chips.push(`<span class="badge">${p.Status}</span>`);
-        if (p.Screens!=null) chips.push(`<span class="badge">${p.Screens} screen${+p.Screens===1?'':'s'}</span>`);
-        if (p.Seats!=null)   chips.push(`<span class="badge">${p.Seats} seats</span>`);
-        return `
-          <div class="title">${statusDot(p.Status)}${p.Theatre || 'Untitled'}</div>
-          ${films}
-          ${addr}
-          ${chips.length ? `<div class="badges">${chips.join('')}</div>` : ''}
-        `;
-      }
-
-      // Load data
-      const fc = parseInlineJSON();
-      const feats = Array.isArray(fc.features) ? fc.features : [];
-
-      // Map
-      const map = L.map('map');
-      const base = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
-
-      // Fit to CLE area or data bounds
-      const fallbackBounds = [[41.35,-81.9],[41.63,-81.3]]; // roughly CLE
-      const featureLatLngs = feats
-        .map(f => (f && f.geometry && Array.isArray(f.geometry.coordinates)) ? [f.geometry.coordinates[1], f.geometry.coordinates[0]] : null)
-        .filter(Boolean);
-
-      if (featureLatLngs.length) {
-        map.fitBounds(L.latLngBounds(featureLatLngs).pad(0.1));
-      } else {
-        map.fitBounds(fallbackBounds);
-      }
-
-      // Build markers and a quick index for sidebar
-      const markers = [];
-      const featureLayers = [];
-      feats.forEach((f, idx) => {
-        if (!f || !f.geometry || !Array.isArray(f.geometry.coordinates)) return;
-        const [lon, lat] = f.geometry.coordinates;
-        const p = f.properties || {};
-        const color = statusColor(p.Status);
-        const m = L.marker([lat, lon], { icon: markerIcon(color, 18), title: p.Theatre || '' })
-          .addTo(map)
-          .bindPopup(popupHTML(p), { maxWidth: 420 });
-        markers.push({ idx, marker: m, props: p, latlng: [lat, lon] });
-        featureLayers.push(m);
+      document.getElementById("filter").addEventListener("input",e=>{
+        const q=e.target.value.toLowerCase();
+        render(markers.filter(r=>
+          [r.p.Theatre,r.p.Address,r.p.Movie].some(v=>v&&v.toLowerCase().includes(q))
+        ));
       });
 
-      // Sidebar list
-      const listEl = $('#list');
-      const statusEl = $('#status');
-      function renderList(rows) {
-        if (!listEl) return;
-        listEl.innerHTML = '';
-        rows.forEach(({idx, props}) => {
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.innerHTML = itemHTML(props);
-          div.addEventListener('click', () => {
-            const {latlng, marker} = markers.find(m => m.idx === idx) || {};
-            if (latlng && marker) {
-              map.flyTo(latlng, Math.max(map.getZoom(), 15), { duration: 0.6 });
-              marker.openPopup();
-            }
-          });
-          listEl.appendChild(div);
-        });
-        if (statusEl) statusEl.textContent = `${rows.length} theatre${rows.length===1?'':'s'}`;
-      }
-      renderList(markers.map(m => ({ idx: m.idx, props: m.props })));
-
-      // Filter
-      const filterEl = $('#filter');
-      function applyFilter() {
-        const q = (filterEl && filterEl.value || '').toLowerCase().trim();
-        let filtered = markers;
-        if (q) {
-          filtered = markers.filter(m => {
-            const p = m.props || {};
-            return [p.Theatre, p.Address, p.Movie, p.Status]
-              .filter(Boolean)
-              .some(v => String(v).toLowerCase().includes(q));
-          });
-        }
-        renderList(filtered.map(m => ({ idx: m.idx, props: m.props })));
-      }
-      if (filterEl) {
-        let t=null;
-        filterEl.addEventListener('input', () => {
-          clearTimeout(t); t=setTimeout(applyFilter, 120);
-        });
-      }
-
-      // Home (reset) button
-      const homeBtn = $('#homeBtn');
-      if (homeBtn) {
-        homeBtn.addEventListener('click', () => {
-          if (featureLatLngs.length) {
-            map.closePopup();
-            map.fitBounds(L.latLngBounds(featureLatLngs).pad(0.1));
-          } else {
-            map.setView([41.4993,-81.6944], 12); // downtown CLE
-          }
-        });
-      }
-
-      // Legend
-      const legend = $('#legend');
-      if (legend) {
-        legend.innerHTML = `
-          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#16a34a;border:1px solid rgba(0,0,0,.2)"></span> Open</div>
-          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#dc2626;border:1px solid rgba(0,0,0,.2)"></span> Closed</div>
-          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#2563eb;border:1px solid rgba(0,0,0,.2)"></span> Restoration</div>
-          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#7c3aed;border:1px solid rgba(0,0,0,.2)"></span> Demo / Other</div>
-        `;
-      }
-
-      // Done
-      if (statusEl) statusEl.textContent = `${markers.length} theatre${markers.length===1?'':'s'}`;
-    })();
+      document.getElementById("legend").innerHTML=
+        `<div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#16a34a;border:1px solid #ccc"></span>Open</div>
+         <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#dc2626;border:1px solid #ccc"></span>Closed</div>
+         <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#2563eb;border:1px solid #ccc"></span>Restoration</div>`;
+    });
   </script>
 </body>
 </html>

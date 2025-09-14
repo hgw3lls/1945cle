@@ -1,118 +1,102 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Info Map — embedded (no cluster, films parsed, colored SVG markers, FIXED)</title>
+<title>Cleveland Theatres, August 1945 — no-editor build</title>
+<link rel="preconnect" href="https://{s}.tile.openstreetmap.org">
 <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+
 <style>
-html, body { height: 100%; margin: 0; }
-body { display: grid; grid-template-columns: 420px 1fr; grid-template-rows: 1fr; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-#sidebar { border-right: 1px solid #e3e3e3; padding: 12px; overflow:auto; }
-#map { width: 100%; height: 100%; }
-.section-title { font-size: 12px; font-weight: 700; color:#333; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: .04em; }
-.search { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border:1px solid #ccc; margin-bottom: 8px; }
-.btns { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
-button, .btn { padding: 8px 10px; border-radius: 8px; border:1px solid #ccc; background:#fafafa; cursor:pointer; }
-button:hover, .btn:hover { background:#f1f1f1; }
-.status { font-size: 12px; margin: 8px 0; color: #333; }
-.list { margin-top: 8px; }
-.item { padding: 8px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; border: 1px solid #eee; }
-.item:hover { background:#f7f7f7; }
-.title { font-weight: 700; }
-.small { color:#555; font-size: 12px; }
-.badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
-.badge { display:inline-block; padding:2px 6px; border-radius:999px; background:#eef2ff; border:1px solid #c7d2fe; font-size:11px; color:#3730a3; }
-.details-table { width:100%; border-collapse: collapse; margin-top:6px; }
-.details-table th, .details-table td { border-top: 1px solid #eee; padding: 4px 0; font-size:12px; vertical-align: top; }
-.details-table th { color:#333; text-align:left; padding-right: 8px; white-space: nowrap; }
-.editor { border:1px solid #eee; padding:10px; border-radius:10px; background:#fcfcfc; }
-.editor input[type="text"], .editor textarea { width:100%; box-sizing:border-box; padding:8px 10px; border-radius:8px; border:1px solid #ccc; }
-.editor textarea { min-height: 90px; resize: vertical; }
-.editor .actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
-.hint { font-size:11px; color:#666; }
-.legend { position:absolute; z-index:1000; right:12px; bottom:12px; background:#fff; border:1px solid #eee; border-radius:10px; padding:8px 10px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
-.legend .row{ display:flex; align-items:center; gap:8px; font-size:12px; margin:4px 0; }
-.legend img{ width:18px; height:18px; display:block; }
-  </style>
-<script>
-function statusColor(status) {
-  const s = String(status || '').toLowerCase().trim();
-  if (s === 'open') return '#16a34a';
-  if (s === 'closed') return '#dc2626';
-  if (s.includes('demo')) return '#7c3aed';
-  if (s.includes('restor')) return '#2563eb';
-  if (s.includes('church')) return '#f59e0b';
-  return '#64748b';
-}
-function statusDot(status) {
-  return '<span class="status-dot" style="display:inline-block;width:10px;height:10px;border-radius:999px;vertical-align:middle;margin-right:6px;border:1px solid rgba(0,0,0,.15);background:'+statusColor(status)+';"></span>';
-}
-</script>
-<style>
-.leaflet-popup-content .row-url,
-.leaflet-popup-content .row-ech_source,
-.leaflet-popup-content .row-lon,
-.leaflet-popup-content .row-lat,
-.leaflet-popup-content .row-rl,
-.leaflet-popup-content .row-status,
-.leaflet-popup-content .row-ct_status { display:none !important; }
-.title .status-dot{ vertical-align:middle; }
+  html, body { height: 100%; margin: 0; }
+  body { display: grid; grid-template-columns: 420px 1fr; grid-template-rows: 1fr; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#111;}
+  #sidebar { border-right: 1px solid #e3e3e3; padding: 12px; overflow:auto; }
+  #map { width: 100%; height: 100%; }
 
+  .section-title { font-size: 12px; font-weight: 700; color:#333; margin: 8px 0 4px; text-transform: uppercase; letter-spacing: .04em; }
+  .search { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border:1px solid #ccc; margin-bottom: 8px; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  button, .btn { padding: 8px 10px; border-radius: 8px; border:1px solid #ccc; background:#fafafa; cursor:pointer; }
+  button:hover, .btn:hover { background:#f1f1f1; }
 
-/* --- HIDE THE EDITOR SECTION (title + panel) --- */
-#editor,
-.section-title:has(+ #editor) {
-  display: none !important;
-}
+  .status { font-size: 12px; margin: 8px 0; color: #333; }
+  .list { margin-top: 8px; }
+  .item { padding: 8px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; border: 1px solid #eee; }
+  .item:hover { background:#f7f7f7; }
+  .title { font-weight: 700; }
+  .small { color:#555; font-size: 12px; }
+  .badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+  .badge { display:inline-block; padding:2px 6px; border-radius:999px; background:#eef2ff; border:1px solid #c7d2fe; font-size:11px; color:#3730a3; }
 
-/* Sidebar Home View button */
-#homeBtn{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #1d4ed8;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
-#homeBtn:hover{background:#1d4ed8}
+  .details-table { width:100%; border-collapse: collapse; margin-top:6px; }
+  .details-table th, .details-table td { border-top: 1px solid #eee; padding: 4px 0; font-size:12px; vertical-align: top; }
+  .details-table th { color:#333; text-align:left; padding-right: 8px; white-space: nowrap; }
+
+  .legend { position:absolute; z-index:1000; right:12px; bottom:12px; background:#fff; border:1px solid #eee; border-radius:10px; padding:8px 10px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+  .legend .row{ display:flex; align-items:center; gap:8px; font-size:12px; margin:4px 0; }
+
+  /* Hide fields you asked to hide inside popups */
+  .leaflet-popup-content .row-url,
+  .leaflet-popup-content .row-ech_source,
+  .leaflet-popup-content .row-lon,
+  .leaflet-popup-content .row-lat,
+  .leaflet-popup-content .row-rl,
+  .leaflet-popup-content .row-ct_status { display:none !important; }
+
+  .title .status-dot{ vertical-align:middle; }
+
+  /* Sidebar Home View button */
+  #homeBtn{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #1d4ed8;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
+  #homeBtn:hover{background:#1d4ed8}
 </style>
+
 <script>
-// helper: truncate without splitting words
-function truncateText(s, max=180){
-  s = (s==null ? '' : String(s));
-  if (s.length <= max) return s;
-  const cut = s.slice(0, max);
-  const lastSpace = cut.lastIndexOf(' ');
-  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut) + '…';
-}
+  // Color helpers
+  function statusColor(status) {
+    const s = String(status || '').toLowerCase().trim();
+    if (s === 'open') return '#16a34a';
+    if (s === 'closed') return '#dc2626';
+    if (s.includes('demo')) return '#7c3aed';
+    if (s.includes('restor')) return '#2563eb';
+    if (s.includes('church')) return '#f59e0b';
+    return '#64748b';
+  }
+  function statusDot(status) {
+    return '<span class="status-dot" style="display:inline-block;width:10px;height:10px;border-radius:999px;vertical-align:middle;margin-right:6px;border:1px solid rgba(0,0,0,.15);background:'+statusColor(status)+';"></span>';
+  }
+  function truncateText(s, max=180){
+    s = (s==null ? '' : String(s));
+    if (s.length <= max) return s;
+    const cut = s.slice(0, max);
+    const lastSpace = cut.lastIndexOf(' ');
+    return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut) + '…';
+  }
 </script>
 </head>
+
 <body>
-<aside id="sidebar"><div style="margin-bottom:12px;"><button id="homeBtn">Home View</button></div><div class="section-title">GOING TO THE MOVIES IN CLEVELAND, 1945</div><div style="font-size:14px; line-height:1.4; margin-bottom:12px; color:#333;">It’s August 1945. The war is ending, the lights are back on downtown, and Cleveland’s theaters are buzzing with crowds. 
-    This interactive map lets you relive that moment.<br/><br/>
-    Just tap a theater dot to see what was on the marquee: the films playing that week, the house itself, and—when available—a photo, address, and a bit of its history.<br/><br/>
-    Close the window to return to the map and stroll to the next showplace. When your tour is done, step back to the map’s beginning and imagine the city as it was—alive with moviegoing.</div>
-<div class="section-title">Search</div>
-<input class="search" id="filter" placeholder="Filter by theatre…"/>
-<div class="btns">
-</div>
-<div class="section-title">Editor</div>
-<div class="editor" id="editor">
-<div class="hint">Select a marker or list item, or click “Edit” in a popup.</div>
-<div style="margin-top:8px">
-<input id="edTitle" placeholder="Custom title (optional)" type="text"/>
-<input id="edFilm" placeholder="Custom films (use ; to separate)" type="text"/>
-<input id="edAddress" placeholder="Display address (optional; doesn’t move marker)" type="text"/>
-<textarea id="edNotes" placeholder="Notes (plain text; line breaks allowed)"></textarea>
-<textarea id="edImages" placeholder="Image URLs (one per line)"></textarea>
-</div>
-<div class="actions">
-<button id="saveEdit">Save</button>
-<button id="openPopup">Open popup</button>
-<button id="clearEdit">Clear this entry</button>
-</div>
-<div class="hint">Enter multiple films separated by semicolons, e.g., “Movie A; Movie B; Movie C”.</div>
-</div>
-<div class="status" id="status">Loading…</div>
-<div class="list" id="list"></div>
-</aside>
-<div id="map"></div>
-<div class="legend" id="legend"></div>
+  <aside id="sidebar">
+    <div style="margin-bottom:12px;"><button id="homeBtn">Home View</button></div>
+
+    <div class="section-title">GOING TO THE MOVIES IN CLEVELAND, 1945</div>
+    <div style="font-size:14px; line-height:1.4; margin-bottom:12px; color:#333;">
+      It’s August 1945. The war is ending, the lights are back on downtown, and Cleveland’s theaters are buzzing with crowds.
+      This interactive map lets you relive that moment.<br/><br/>
+      Just tap a theater dot to see what was on the marquee: the films playing that week, the house itself, and—when available—a photo, address, and a bit of its history.<br/><br/>
+      Close the window to return to the map and stroll to the next showplace. When your tour is done, step back to the map’s beginning and imagine the city as it was—alive with moviegoing.
+    </div>
+
+    <div class="section-title">Search</div>
+    <input class="search" id="filter" placeholder="Filter by theatre…"/>
+
+    <!-- (Editor fully removed) -->
+
+    <div class="status" id="status">Loading…</div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <div id="map"></div>
+  <div class="legend" id="legend"></div>
 <!-- Safely embed JSON -->
 <script id="data" type="application/json">{
   "type": "FeatureCollection",
@@ -2779,430 +2763,196 @@ function truncateText(s, max=180){
     }
   ]
 }</script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    const FC = JSON.parse(document.getElementById('data').textContent);
+ <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (function(){
+      const $ = (sel) => document.querySelector(sel);
 
-    const ANNO_KEY = 'theatreAnnotations_nocluster_films_colored_v2';
-    let annotations = {}
-    try { annotations = JSON.parse(localStorage.getItem(ANNO_KEY) || '{}'); } catch { annotations = {}; }
-    function saveAnno() { localStorage.setItem(ANNO_KEY, JSON.stringify(annotations)); }
+      // Safe JSON parse of inline data
+      function parseInlineJSON() {
+        const n = $('#data');
+        if (!n) return {type:'FeatureCollection', features:[]};
+        try { return JSON.parse(n.textContent || '{}'); }
+        catch (e) { console.error('Bad inline JSON:', e); return {type:'FeatureCollection', features:[]}; }
+      }
 
-    
-    // ==== Dual-color icon: white foreground over colored circular background ====
+      // Build a simple SVG dot marker
+      function markerIcon(hexColor, size=18) {
+        const r = size/2;
+        const svg =
+          `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+             <circle cx="${r}" cy="${r}" r="${r-1}" fill="${hexColor}" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+           </svg>`;
+        return L.divIcon({
+          html: svg,
+          className: 'custom-dot',
+          iconSize: [size, size],
+          iconAnchor: [r, r]
+        });
+      }
 
-    const ICON_SIZE = 40;
-    const RAW_SVG = "<?xml version=\"1.0\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\"\n \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n<svg version=\"1.0\" xmlns=\"http://www.w3.org/2000/svg\"\n width=\"300.000000pt\" height=\"300.000000pt\" viewBox=\"0 0 300.000000 300.000000\"\n preserveAspectRatio=\"xMidYMid meet\">\n<metadata>\nCreated by potrace 1.10, written by Peter Selinger 2001-2011\n</metadata>\n<g transform=\"translate(0.000000,300.000000) scale(0.050000,-0.050000)\"\nfill=\"#000000\" stroke=\"none\">\n<path d=\"M526 5957 c-192 -65 -339 -195 -436 -385 l-80 -157 0 -2413 0 -2412\n64 -134 c103 -218 263 -352 505 -424 149 -44 4666 -49 4831 -5 235 63 413 210\n516 429 l64 134 0 2410 0 2410 -63 132 c-87 185 -184 284 -363 373 l-152 75\n-2381 4 c-2368 5 -2382 4 -2505 -37z m2934 -683 c0 -15 -31 -161 -68 -325 -38\n-165 -93 -420 -122 -569 -29 -148 -57 -286 -63 -306 -9 -31 -33 -35 -222 -30\nl-212 6 -94 460 c-83 402 -135 632 -171 755 -10 33 22 35 471 35 383 0 481 -5\n481 -26z m444 -380 c32 -4 31 -12 -8 -94 -23 -49 -103 -238 -177 -420 l-136\n-330 -142 -6 c-77 -3 -141 1 -141 9 0 49 186 839 200 847 15 9 319 5 404 -6z\nm-1325 -399 c48 -223 88 -414 89 -425 1 -12 -56 -20 -137 -20 l-138 0 -40 100\nc-22 55 -97 235 -168 400 -71 165 -133 311 -139 325 -8 19 43 25 218 25 l229\n0 86 -405z m-513 100 c6 -14 60 -139 120 -279 124 -287 124 -276 -19 -276\n-101 0 -109 4 -154 75 -79 126 -293 488 -293 497 0 22 336 6 346 -17z m2153\n-50 c-25 -41 -101 -169 -169 -285 l-123 -210 -96 -6 c-173 -11 -175 -33 47\n481 l41 95 172 0 173 0 -45 -75z m211 -1105 l0 -510 -1445 -5 -1445 -5 0 520\n0 520 1445 -5 1445 -5 0 -510z m-2970 10 l0 -70 -610 0 -610 0 0 70 0 70 610\n0 610 0 0 -70z m4280 0 l0 -70 -609 0 c-563 0 -609 3 -616 35 -23 108 -40 105\n617 105 l608 0 0 -70z m-4276 -404 l6 -213 370 -275 370 -275 773 -2 773 -1\n382 282 382 282 0 208 0 208 540 0 540 0 0 -1140 0 -1140 -910 0 -910 0 0 450\n0 450 -230 0 -230 0 0 -450 0 -450 -50 0 -50 0 0 450 0 450 -230 0 -230 0 0\n-450 0 -450 -50 0 -49 0 -6 445 -5 445 -230 0 -230 0 -5 -445 -6 -445 -899 0\n-900 0 0 1140 0 1140 539 0 540 0 5 -214z m4276 -2256 l0 -70 -2750 0 -2750 0\n0 70 0 70 2750 0 2750 0 0 -70z\"/>\n</g>\n</svg>\n";
-    function extractViewBox(svg){
-      const m = svg.match(/viewBox\s*=\s*["']\s*([-.\d]+)\s+([-.\d]+)\s+([-.\d]+)\s+([-.\d]+)\s*["']/i);
-      if (!m) return null;
-      return {minx: parseFloat(m[1]), miny: parseFloat(m[2]), w: parseFloat(m[3]), h: parseFloat(m[4])};
-    }
-    function stripOuterSvg(svg){
-      svg = svg.replace(/<\?xml[\s\S]*?\?>/g, '').replace(/<!DOCTYPE[\s\S]*?>/gi, '');
-      const m = svg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
-      return m ? m[1] : svg;
-    }
-    function composeIcon(bgColor){
-      const vb = extractViewBox(RAW_SVG) || {minx:0, miny:0, w:24, h:24};
-      const inner = stripOuterSvg(RAW_SVG);
-      const ICON_SIZE = 40, PAD = 4, INNER = ICON_SIZE - PAD*2;
-      const scale = Math.min(INNER / vb.w, INNER / vb.h);
-      const tx = (ICON_SIZE - vb.w*scale)/2 - vb.minx*scale;
-      const ty = (ICON_SIZE - vb.h*scale)/2 - vb.miny*scale;
-      const svg =
-        `<svg xmlns="http://www.w3.org/2000/svg" width="${ICON_SIZE}" height="${ICON_SIZE}" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}">` +
-          `<circle cx="${ICON_SIZE/2}" cy="${ICON_SIZE/2}" r="${(ICON_SIZE/2)-2}" fill="${bgColor}"/>` +
-          `<g transform="translate(${tx.toFixed(3)} ${ty.toFixed(3)}) scale(${scale.toFixed(5)})" fill="#ffffff" stroke="#ffffff">` +
-            inner +
-          `</g>` +
-        `</svg>`;
-      const encoded = encodeURIComponent(svg).replace(/'/g, '%27').replace(/"/g, '%22');
-      return `data:image/svg+xml;charset=utf-8,${encoded}`;
-    }
-    function makeIcon(color){
-      return L.icon({
-        iconUrl: composeIcon(color),
-        iconSize: [ICON_SIZE, ICON_SIZE],
-        iconAnchor: [ICON_SIZE/2, ICON_SIZE - 6],
-        popupAnchor: [0, -(ICON_SIZE/2 - 6)],
-        className: 'theatre-icon'
+      // Popup HTML
+      function popupHTML(p) {
+        const rows = [];
+        const push = (label, val, cls) => {
+          if (val == null || String(val).trim()==='') return;
+          rows.push(
+            `<tr class="${cls || ''}">
+              <th>${label}</th>
+              <td>${String(val)}</td>
+            </tr>`
+          );
+        };
+
+        const titleLine = `
+          <div class="title" style="font-size:16px;margin-bottom:6px;">
+            ${statusDot(p.Status)}${p.Theatre || 'Untitled'}
+          </div>`;
+
+        // Compact status next to title handled by statusDot above
+        push('Address', p.Address, 'row-address');
+        push('Films', p.Movie, 'row-movie');
+        push('Seats', p.Seats, 'row-seats');
+        push('Screens', p.Screens, 'row-screens');
+        if (p.URL) {
+          push('Link', `<a href="${p.URL}" target="_blank" rel="noopener">Cinema Treasures</a>`, 'row-url');
+        }
+        if (p.Description) {
+          push('Notes', p.Description, 'row-notes');
+        }
+
+        return `
+          ${titleLine}
+          <table class="details-table">${rows.join('')}</table>
+        `;
+      }
+
+      // Sidebar item HTML
+      function itemHTML(p) {
+        const films = p.Movie ? `<div class="small">${p.Movie}</div>` : '';
+        const addr  = p.Address ? `<div class="small">${p.Address}</div>` : '';
+        const chips = [];
+        if (p.Status) chips.push(`<span class="badge">${p.Status}</span>`);
+        if (p.Screens!=null) chips.push(`<span class="badge">${p.Screens} screen${+p.Screens===1?'':'s'}</span>`);
+        if (p.Seats!=null)   chips.push(`<span class="badge">${p.Seats} seats</span>`);
+        return `
+          <div class="title">${statusDot(p.Status)}${p.Theatre || 'Untitled'}</div>
+          ${films}
+          ${addr}
+          ${chips.length ? `<div class="badges">${chips.join('')}</div>` : ''}
+        `;
+      }
+
+      // Load data
+      const fc = parseInlineJSON();
+      const feats = Array.isArray(fc.features) ? fc.features : [];
+
+      // Map
+      const map = L.map('map');
+      const base = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+
+      // Fit to CLE area or data bounds
+      const fallbackBounds = [[41.35,-81.9],[41.63,-81.3]]; // roughly CLE
+      const featureLatLngs = feats
+        .map(f => (f && f.geometry && Array.isArray(f.geometry.coordinates)) ? [f.geometry.coordinates[1], f.geometry.coordinates[0]] : null)
+        .filter(Boolean);
+
+      if (featureLatLngs.length) {
+        map.fitBounds(L.latLngBounds(featureLatLngs).pad(0.1));
+      } else {
+        map.fitBounds(fallbackBounds);
+      }
+
+      // Build markers and a quick index for sidebar
+      const markers = [];
+      const featureLayers = [];
+      feats.forEach((f, idx) => {
+        if (!f || !f.geometry || !Array.isArray(f.geometry.coordinates)) return;
+        const [lon, lat] = f.geometry.coordinates;
+        const p = f.properties || {};
+        const color = statusColor(p.Status);
+        const m = L.marker([lat, lon], { icon: markerIcon(color, 18), title: p.Theatre || '' })
+          .addTo(map)
+          .bindPopup(popupHTML(p), { maxWidth: 420 });
+        markers.push({ idx, marker: m, props: p, latlng: [lat, lon] });
+        featureLayers.push(m);
       });
-    }
-    const ICON_OPEN   = makeIcon('#16a34a');
-    const ICON_CLOSED = makeIcon('#dc2626');
-    const ICON_UNKNOWN= makeIcon('#64748b');
-// slate-500
 
-    function keyFor(feat, idx) { const p=feat.properties||{}; return (p.ObjectID ?? p.id ?? idx); }
-    function esc(s) { if (s==null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-    function notesToHtml(s) { return esc(s).replace(/\n/g,'<br>'); }
-    function detailKeysFrom(feat) {
-      const p = feat.properties || {};
-      const exclude = new Set(['Theatre','Theater','Name','Movie','CT_Address','Address','CT_Source','CT_Status','CT_Screens','CT_Seats','ObjectID','id','_annotation','URL','ECH_Source','lon','lat','RL','Status','CT_Status','Description','Description_Long','Description Long','desc']);
-      return Object.keys(p).filter(k => !exclude.has(k)).sort();
-    }
-    function parseFilms(str) { if (!str) return []; return String(str).split(';').map(s => s.trim()).filter(Boolean); }
-    function filmsHtml(list) { if (!list.length) return ''; const chips = list.map(f => `<span class="badge">${esc(f)}</span>`).join(''); return `<div class="badges" aria-label="Films">${chips}</div>`; }
+      // Sidebar list
+      const listEl = $('#list');
+      const statusEl = $('#status');
+      function renderList(rows) {
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        rows.forEach(({idx, props}) => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = itemHTML(props);
+          div.addEventListener('click', () => {
+            const {latlng, marker} = markers.find(m => m.idx === idx) || {};
+            if (latlng && marker) {
+              map.flyTo(latlng, Math.max(map.getZoom(), 15), { duration: 0.6 });
+              marker.openPopup();
+            }
+          });
+          listEl.appendChild(div);
+        });
+        if (statusEl) statusEl.textContent = `${rows.length} theatre${rows.length===1?'':'s'}`;
+      }
+      renderList(markers.map(m => ({ idx: m.idx, props: m.props })));
 
-    function popupHtml(feat, idx) {
-      const p=feat.properties||{};
-      const key = String(keyFor(feat, idx));
-      const anno = annotations[key] || {};
-      const title = anno.title || p.Theatre || p.Theater || p.Name || '(Unknown theatre)';
-      const films = parseFilms(anno.film || p.Movie || '');
-      const address = anno.address || p.CT_Address || p.Address || '';
-      const notesHtml = anno.notes ? `<div class="small" style="margin-top:6px">${notesToHtml(anno.notes)}</div>` : '';
-      let imgs='';
-      if (anno.images && Array.isArray(anno.images)) { imgs = anno.images.filter(Boolean).slice(0,4).map(u=>`<img src="${esc(u)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:6px">`).join(''); }
-      const rows = detailKeysFrom(feat).map(k=>`<tr><th>${esc(k)}</th><td>${esc(p[k])}</td></tr>`).join('');
-      const details = rows ? `<table class="details-table">${rows}</table>` : '';
-      return `
-        <div style="min-width:280px">
-          <div style="display:flex;align-items:center;gap:8px">
-  <div style="font-weight:700;font-size:14px">${esc(title)}</div>
-  <div class="status-text" style="margin-left:auto;font-weight:600;color:${statusColor((feat && feat.properties && (feat.properties.CT_Status||feat.properties.Status)) || (p && (p.CT_Status||p.Status)) || "Unknown")}">${(feat && feat.properties && (feat.properties.CT_Status||feat.properties.Status)) || (p && (p.CT_Status||p.Status)) || "Unknown"}</div>
-</div>
-          ${films.length ? `<div class="small">Films:</div>${filmsHtml(films)}` : ''}
-          ${(() => {
-  const desc = (p && (p.Description_Long || p.Description || p["Description Long"])) 
-            || (feat && feat.properties && (feat.properties.Description_Long || feat.properties.Description || feat.properties["Description Long"])) 
-            || "";
-  return desc ? `<div class="small" style="margin-top:6px">${esc(desc)}</div>` : '';
-})()}
-          ${notesHtml}
-          ${imgs}
-          ${details}
-        </div>`;
-    }
-    function tmplItem(feat, idx) {
-      const key=String(keyFor(feat, idx));
-      const p=feat.properties||{}; const anno=annotations[key]||{};
-      const title=anno.title||p.Theatre||p.Theater||p.Name||'(Unknown theatre)';
-      const addr=anno.address||p.CT_Address||p.Address||'';
-      return `<div class="item" data-key="${key}"><div><span class="title">${statusDot((p && (p.CT_Status||p.Status)) || (feat && feat.properties && (feat.properties.CT_Status||feat.properties.Status)))}${esc(title)}</span></div><div class="small">${esc(truncateText(
-  (p && (p.Description || p["Description"] || p.Description_Long || p["Description Long"])) ||
-  (feat && feat.properties && (feat.properties.Description || feat.properties["Description"] || feat.properties.Description_Long || feat.properties["Description Long"])) ||
-  ""
-))}</div></div>`;
-    }
-    function attachListHandlers(wrapper) {
-      wrapper.querySelectorAll('[data-key]').forEach(el=>{
-        el.addEventListener('click',e=>{ if(e.target.closest('[data-edit]')) return; selectByKey(el.getAttribute('data-key'), true); });
-      });
-      wrapper.querySelectorAll('[data-edit]').forEach(el=>{
-        el.addEventListener('click',e=>{ e.preventDefault(); openEditorFor(el.getAttribute('data-edit')); });
-      });
-    }
+      // Filter
+      const filterEl = $('#filter');
+      function applyFilter() {
+        const q = (filterEl && filterEl.value || '').toLowerCase().trim();
+        let filtered = markers;
+        if (q) {
+          filtered = markers.filter(m => {
+            const p = m.props || {};
+            return [p.Theatre, p.Address, p.Movie, p.Status]
+              .filter(Boolean)
+              .some(v => String(v).toLowerCase().includes(q));
+          });
+        }
+        renderList(filtered.map(m => ({ idx: m.idx, props: m.props })));
+      }
+      if (filterEl) {
+        let t=null;
+        filterEl.addEventListener('input', () => {
+          clearTimeout(t); t=setTimeout(applyFilter, 120);
+        });
+      }
 
-    const map = L.map('map');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-    const indexByKey=new Map();
+      // Home (reset) button
+      const homeBtn = $('#homeBtn');
+      if (homeBtn) {
+        homeBtn.addEventListener('click', () => {
+          if (featureLatLngs.length) {
+            map.closePopup();
+            map.fitBounds(L.latLngBounds(featureLatLngs).pad(0.1));
+          } else {
+            map.setView([41.4993,-81.6944], 12); // downtown CLE
+          }
+        });
+      }
 
-    const listEl=document.getElementById('list');
-    const filterEl=document.getElementById('filter');
-    const statusEl=document.getElementById('status');
-    const edTitle=document.getElementById('edTitle');
-    const edFilm=document.getElementById('edFilm');
-    const edAddress=document.getElementById('edAddress');
-    const edNotes=document.getElementById('edNotes');
-    const edImages=document.getElementById('edImages');
-    const saveEdit=document.getElementById('saveEdit');
-    const openPopupBtn=document.getElementById('openPopup');
-    const clearEdit=document.getElementById('clearEdit');
-    let selectedKey=null;
+      // Legend
+      const legend = $('#legend');
+      if (legend) {
+        legend.innerHTML = `
+          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#16a34a;border:1px solid rgba(0,0,0,.2)"></span> Open</div>
+          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#dc2626;border:1px solid rgba(0,0,0,.2)"></span> Closed</div>
+          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#2563eb;border:1px solid rgba(0,0,0,.2)"></span> Restoration</div>
+          <div class="row"><span style="display:inline-block;width:14px;height:14px;border-radius:999px;background:#7c3aed;border:1px solid rgba(0,0,0,.2)"></span> Demo / Other</div>
+        `;
+      }
 
-    function selectByKey(key,openPopup=false){
-      selectedKey=String(key);
-      const entry=indexByKey.get(selectedKey); if(!entry) return;
-      map.flyTo(entry.marker.getLatLng(),Math.max(map.getZoom(),15),{duration:0.7});
-      if(openPopup) entry.marker.openPopup();
-      loadEditor(selectedKey);
-    }
-    function loadEditor(key){
-      const anno=annotations[String(key)]||{};
-      edTitle.value=anno.title||''; edFilm.value=Array.isArray(anno.films) ? anno.films.join('; ') : (anno.film||''); edAddress.value=anno.address||'';
-      edNotes.value=anno.notes||''; edImages.value=(anno.images||[]).join('\n');
-    }
-    function openEditorFor(key){ selectedKey=String(key); loadEditor(selectedKey); }
-    function updatePopup(key){ const e=indexByKey.get(String(key)); if(e) e.marker.setPopupContent(popupHtml(e.feat,e.idx)); }
-
-    (function(){const _el=document.getElementById('exportAnno'); if(_el) _el.addEventListener('click', ()=>{
-const blob=new Blob([JSON.stringify(annotations,null,2)],{type:'application/json'});})();
-      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='theatre_annotations.json'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-    });
-    (function(){const _el=document.getElementById('importAnno'); if(_el) _el.addEventListener('change', e=>{
-const f=e.target.files[0]; if(!f) return; const reader=new FileReader();})();
-      reader.onload=()=>{ try{ const obj=JSON.parse(reader.result); if(obj&&typeof obj==='object'){ annotations=obj; saveAnno(); indexByKey.forEach((v,k)=>updatePopup(k)); } } catch{ alert('Invalid JSON'); } };
-      reader.readAsText(f); e.target.value='';
-    });
-    (function(){const _el=document.getElementById('exportGeo'); if(_el) _el.addEventListener('click', ()=>{
-const out={type:'FeatureCollection',features:[]};
-indexByKey.forEach((value,key)=>{ const cp=JSON.parse(JSON.stringify(value.feat));})(); const anno=annotations[String(key)]||undefined; if(anno) cp.properties=Object.assign({},cp.properties||{},{_annotation:anno}); out.features.push(cp); });
-      const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='info_with_annotations.geojson'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-    });
-
-    filterEl.addEventListener('input',()=>{
-      const q=filterEl.value.trim().toLowerCase();
-      for(const child of listEl.children) child.style.display='';
-      if(!q) return;
-      for(const child of listEl.children){ if(!child.textContent.toLowerCase().includes(q)) child.style.display='none'; }
-    });
-
-    // Legend
-    (function legend(){
-      const el=document.getElementById('legend');
-      const img=(c)=>{ const u=composeIcon(c); return `<img src=\"${u}\" alt=\"\">`; };
-      el.innerHTML = `
-        <div class="row">${img('#16a34a')} <span>Open</span></div>
-        <div class="row">${img('#dc2626')} <span>Closed</span></div>
-        <div class="row">${img('#64748b')} <span>Unknown</span></div>
-      `;
-    })();
-
-    (function init(){
-      listEl.innerHTML=''; indexByKey.clear();
-      const b=L.latLngBounds([]); let placed=0;
-      (FC.features||[]).forEach((feat,idx)=>{
-        const g=feat.geometry; if(!g||g.type!=='Point'||!Array.isArray(g.coordinates)) return;
-        feat.__idx=idx;
-        const latlng=[g.coordinates[1],g.coordinates[0]];
-        const p=feat.properties||{};
-        const st=(p.CT_Status||p.status||p.Status||'').toString().toLowerCase().trim();
-        let icon = ICON_UNKNOWN;
-        if (st === 'open') icon = ICON_OPEN;
-        else if (st === 'closed') icon = ICON_CLOSED;
-
-        const m=L.marker(latlng, { icon });
-        m.bindPopup(popupHtml(feat,idx));
-        m.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('[data-edit]'); if(a) a.addEventListener('click',evt=>{evt.preventDefault(); openEditorFor(String(keyFor(feat,idx)));}); });
-        m.addTo(map);
-        const key=String(keyFor(feat,idx)); indexByKey.set(key,{marker:m,feat,idx});
-        const div=document.createElement('div'); div.innerHTML=tmplItem(feat,idx); const el=div.firstElementChild; el.setAttribute('data-key',key); listEl.appendChild(el); attachListHandlers(listEl);
-        b.extend(latlng); placed++;
-      });
-      if(b.isValid()) map.fitBounds(b.pad(0.15)); else map.setView([41.4993,-81.6944],12);
-      statusEl.textContent=`Loaded ${placed} markers.`;
+      // Done
+      if (statusEl) statusEl.textContent = `${markers.length} theatre${markers.length===1?'':'s'}`;
     })();
   </script>
-<script>
-(function(){
-  const HIDE = new Set(['url','ech_source','ech source','lon','long','longitude','lat','latitude','rl','status','ct_status','ct status','description','description_long','description long','desc']);
-  function sanitize(root){
-    if(!root) return;
-    root.querySelectorAll('table tr').forEach(tr=>{
-      const th = tr.querySelector('th, .label, .key'); if(!th) return;
-      const k = th.textContent.trim().toLowerCase().replace(/:$/,'');
-      if(HIDE.has(k)) tr.remove();
-    });
-    root.querySelectorAll('[data-field]').forEach(el=>{
-      const k = (el.getAttribute('data-field')||'').trim().toLowerCase();
-      if(HIDE.has(k)) el.remove();
-    });
-  }
-  if (typeof map !== 'undefined' && map && typeof map.on === 'function') {
-    map.on('popupopen', function(e){
-      try{
-        const el = e.popup && e.popup.getElement();
-        const content = el && el.querySelector('.leaflet-popup-content');
-        sanitize(content || el);
-      }catch(_){}
-    });
-  }
-})();
-</script>
-<script>
-// Enhanced: remove any details rows with empty values (Architects/Firms/Operated_By etc.)
-(function(){
-  const HIDE_KEYS = new Set(['url','ech_source','ech source','lon','long','longitude','lat','latitude','rl','status','ct_status','ct status']);
-  const BLANK_RE = /^(?:\s*|n\/a|none|null|undefined|—|-|–|tbd|unknown)$/i;
-
-  function stripEmptyDetails(root){
-    if(!root) return;
-    // 1) Table rows: remove if value cell empty/placeholder
-    root.querySelectorAll('table tr').forEach(tr => {
-      const th = tr.querySelector('th, .label, .key');
-      const td = tr.querySelector('td, .value, .val');
-      const key = th ? (th.textContent||'').trim().toLowerCase().replace(/:$/,'') : '';
-      const val = td ? (td.textContent||'').replace(/\u00A0/g,' ').trim() : '';
-      if (HIDE_KEYS.has(key)) { tr.remove(); return; }
-      if (!val || BLANK_RE.test(val)) { tr.remove(); }
-    });
-
-    // 2) data-field rows (generic key/value blocks)
-    root.querySelectorAll('[data-field]').forEach(el => {
-      const key = (el.getAttribute('data-field')||'').trim().toLowerCase();
-      const txt = (el.textContent||'').trim();
-      if (HIDE_KEYS.has(key) || !txt || BLANK_RE.test(txt)) el.remove();
-    });
-
-    // 3) Definition lists (dt/dd)
-    root.querySelectorAll('dl').forEach(dl => {
-      dl.querySelectorAll('dt').forEach(dt => {
-        const dd = dt.nextElementSibling;
-        const val = dd ? (dd.textContent||'').trim() : '';
-        if (!val || BLANK_RE.test(val)) {
-          if (dd) dd.remove();
-          dt.remove();
-        }
-      });
-      // remove empty dl
-      if (!dl.querySelector('dt')) dl.remove();
-    });
-
-    // 4) Generic empty blocks cleanup (div/p/span with only whitespace)
-    root.querySelectorAll('div, p, span, li').forEach(el => {
-      const txt = (el.textContent||'').trim();
-      // If element is a label-only row (e.g., has strong/b tag but no value), remove it.
-      const hasValueChild = el.querySelector('td, .value, .val, dd');
-      if ((!txt || BLANK_RE.test(txt)) && !hasValueChild) {
-        el.remove();
-      }
-    });
-  }
-
-  if (typeof map !== 'undefined' && map && typeof map.on === 'function') {
-    map.on('popupopen', function(e){
-      try{
-        const el = e.popup && e.popup.getElement();
-        const content = el && el.querySelector('.leaflet-popup-content');
-        stripEmptyDetails(content || el);
-      }catch(_){}
-    });
-  }
-})();
-</script>
-<script>
-// Dedupe popup description: keep the LONG version, remove shorter/truncated duplicates
-(function(){
-  function norm(s){ return String(s||'').replace(/\s+/g,' ').trim(); }
-  function dedupeDescription(e){
-    try{
-      const src = e && e.popup && e.popup._source;
-      const feat = src && (src.feature || (src.layer && src.layer.feature));
-      const p = feat && feat.properties || {};
-      const long = norm(p.Description_Long || p.Description || '');
-      if(!long || long.length < 40) return; // nothing usable
-
-      const popupEl = e.popup && e.popup.getElement();
-      const container = (popupEl && popupEl.querySelector('.leaflet-popup-content')) || popupEl;
-      if(!container) return;
-
-      // Find all text blocks in popup that look like description fragments
-      const blocks = Array.from(container.querySelectorAll('p, div, span, li'))
-        .filter(el => {
-          const t = norm(el.textContent);
-          // skip films list, titles, labels
-          if (!t || t.length < 30) return false;
-          if (/^films\s*:/i.test(t)) return false;
-          if (/^(architects|firms|operated[_\s-]?by)\s*:?/i.test(t)) return false;
-          if (/^(open|closed|demolished|restoration|church)$/i.test(t)) return false;
-          return long.startsWith(t) || t.startsWith(long) || long.includes(t.slice(0, 40));
-        })
-        .map(el => ({el, text: norm(el.textContent)}));
-
-      if(blocks.length < 2) return;
-
-      // Keep the block with the longest overlap with `long`, remove shorter prefix-like ones
-      blocks.sort((a,b)=> b.text.length - a.text.length);
-      const keep = blocks[0];
-      for(let i=1;i<blocks.length;i++){
-        const t = blocks[i].text;
-        // if it's a prefix of the long text or much shorter duplicate, remove it
-        if (long.startsWith(t) || keep.text.startsWith(t) || t.length < keep.text.length*0.85){
-          blocks[i].el.remove();
-        }
-      }
-    }catch(_){}
-  }
-  if (typeof map !== 'undefined' && map && typeof map.on === 'function') {
-    map.on('popupopen', dedupeDescription);
-  }
-})();
-</script>
-<script>
-// Ensure popup shows FULL Description_Long (no truncation/clamp)
-(function(){
-  function getPropsFromEvent(e){
-    try{
-      const src = e && e.popup && e.popup._source;
-      const f = src && (src.feature || (src.layer && src.layer.feature));
-      return f && f.properties || {};
-    }catch(_){}
-    return null;
-  }
-  function unclamp(el){
-    if(!el) return;
-    el.style.whiteSpace = 'normal';
-    el.style.overflow = 'visible';
-    el.style.textOverflow = 'unset';
-    el.style.maxHeight = 'none';
-    el.style.display = 'block';
-  }
-  function applyFullDescription(e){
-    const p = getPropsFromEvent(e);
-    if(!p) return;
-    const long = (p.Description_Long || p.Description || '').toString().trim();
-    if(!long) return;
-
-    const popupEl = e.popup && e.popup.getElement();
-    const container = (popupEl && popupEl.querySelector('.leaflet-popup-content')) || popupEl;
-    if(!container) return;
-
-    // Candidates: any blocks in popup that already hold description text
-    const blocks = Array.from(container.querySelectorAll('p,div,span'))
-      .filter(node => {
-        const t = (node.textContent||'').trim();
-        if (!t) return false;
-        // must have some overlap with the long description
-        return long.startsWith(t) || t.startsWith(long) || long.includes(t.slice(0, 60));
-      });
-
-    if (blocks.length) {
-      // Use the **first** match as the real description container, replace with full text
-      const main = blocks[0];
-      main.textContent = long;
-      unclamp(main);
-      // Remove any other duplicates
-      for (let i=1;i<blocks.length;i++) {
-        if (blocks[i] !== main) blocks[i].remove();
-      }
-    } else {
-      // If no block found, insert one just below the films/title area
-      const titleRow = container.querySelector('div[style*="display:flex"][style*="gap:8px"]');
-      const host = titleRow ? titleRow.parentElement : container;
-      const d = document.createElement('div');
-      d.textContent = long;
-      d.style.margin = '6px 0';
-      d.style.fontSize = '13px';
-      host.insertBefore(d, titleRow ? titleRow.nextSibling : host.firstChild);
-    }
-  }
-  if (typeof map !== 'undefined' && map && typeof map.on === 'function') {
-    map.on('popupopen', function(e){ try{ applyFullDescription(e); }catch(_){ } });
-  }
-})();
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  var btn = document.getElementById('homeBtn');
-  if(!btn) return;
-  btn.addEventListener('click', function(){
-    try{
-      if (window.map && typeof map.setView === 'function'){
-        // Downtown Cleveland center; tweak zoom if you prefer
-        map.setView([41.4993, -81.6944], 12);
-        if (typeof map.closePopup === 'function') map.closePopup();
-      } else if (window._map && typeof _map.setView === 'function'){
-        _map.setView([41.4993, -81.6944], 12);
-        if (typeof _map.closePopup === 'function') _map.closePopup();
-      } else {
-        console.warn('Map object not found (expected "map" or "_map").');
-      }
-    }catch(e){
-      console.error('Home View error:', e);
-    }
-  });
-});
-</script></body>
+</body>
 </html>
